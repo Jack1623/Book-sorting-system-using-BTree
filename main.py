@@ -92,66 +92,28 @@ class BTree:
         return True  
     
     def inorder(self, standard):
-        flag = 0
-        def _inorder(node, level=0):
-            if node:
-                _inorder(node.children[0])
-                for k in range(len(node.values)):
-                    if node.values[k] == standard:
+        def _inorder(node, standard, flag=0):
+            for l in range(len(node.children)):
+                flag = _inorder(node.children[l], standard, flag)
+                if l < len(node.values):
+                    if node.values[l] == standard:
                         flag = 1
+                        continue
                     if not flag:
-                        listLeft.append(node.values[k])
+                        listLeft.append(node.values[l])
                     else:
-                        listRight.append(node.values[k])
-                _inorder(node.children[1])
+                        listRight.append(node.values[l])
+            if not len(node.children):
+                for m in range(len(node.values)):
+                    if node.values[m] == standard:
+                        flag = 1
+                        continue
+                    if not flag:
+                        listLeft.append(node.values[m])
+                        listRight.append(node.values[m])
+                return flag
+        _inorder(self.root, standard)
 
-            '''for k in range(len(node.values)):
-                if node.values[k] == standard:
-                    _inorder(node[k+1], flag=1)
-                if not len(node.children):
-                    if node.children[0]:
-                        if not flag:
-                            listLeft.append(node.values[k])
-                        else:
-                            listRight.append(node.values[k])
-                        _inorder(node.children[0], flag)
-                    if node.children[1]:
-                        if not flag:
-                            listLeft.append(node.values[k])
-                        else:
-                            listRight.append(node.values[k])
-                        _inorder(node.children[1], flag)
-                else:
-                    _inorder(node, level+1, flag)'''
-        _inorder(self.root)
-'''
-    def inorder(self, standard):
-        def _inorder(node, level=0, flag=0):
-            for k in range(len(node.values)):
-                if node.values[k] == standard:
-                    _inorder(node[k+1], flag=1)
-                print(f"Level {level}: ", end='')
-                try: 
-                    print(f"{book_callNoDict[node.values[k]]}", end=' | ')
-                except KeyError: 
-                    print(f"{standardNo}", end=' | ')
-                if node.children[0]:
-                    print()
-                    if flag == 0:
-                        listLeft.append(node.values[k])
-                    else:
-                        listRight.append(node.values[k])
-                    _inorder(node.children[0], level+1)
-                if node.children[1]:
-                    print()
-                    if flag == 0:
-                        listLeft.append(node.values[k])
-                    else:
-                        listRight.append(node.values[k])
-                    _inorder(node.children[1], level+1)
-        _inorder(self.root)
-
-'''
 def sort_children(children):
     children_value = []
     for child in children:
@@ -170,16 +132,23 @@ def print_tree(node, level=0):
         for child in node.children:
             print_tree(child, level + 1)
 
+def change_to_name(list):
+    i = 0
+    j = 0
+    for value in list:
+        for i in range(len(callNoList)):
+            if value == callNoList[i]:
+                break
+        list[j] = book_callNoDict[callNoList[i]]
+        j += 1
+    return list
+
 btree = BTree()
 
 #6, 8, 10, 2, 1, 7, 3, 9, 11, 4, 5
 values_insert = []
 for value in values_insert:
     btree.insert(value)
-
-print_tree(btree.root)
-
-btree = BTree()
 
 baseURL = "https://www.nl.go.kr/NL/search/openApi/search.do?key=" + APIKEY
 resultList = []
@@ -218,4 +187,6 @@ if __name__ == '__main__':
     btree.insert(standardNo)
 
     btree.inorder(standardNo)
-    print(f"Sort 1: {listLeft}\nSort 2: {listRight}")
+    listLeft = change_to_name(listLeft)
+    listRight = change_to_name(listRight)
+    print(f"\nSort 1: {listLeft}\nSort 2: {listRight}")
