@@ -24,7 +24,7 @@ class BTree:
             node.values.append(value)
             node.values.sort()
 
-            if len(node.values)>4:
+            if len(node.values) > 4:
                 left_node = BTreeNode()
                 right_node = BTreeNode()
                 left_node.values = node.values[:2]
@@ -55,6 +55,52 @@ class BTree:
                     return self.get_value(node.children[i], value)
                 i += 1
             return self.get_value(node.children[i], value)
+    
+    def inorder(self, standard):
+        def _inorder(node, level=0, flag=0):
+            for k in range(len(node.values)):
+                if node.values[k] == standard:
+                    _inorder(node[k+1], flag=1)
+                if node.children[0]:
+                    if flag == 0:
+                        listLeft.append(node.values[k])
+                    else:
+                        listRight.append(node.values[k])
+                    _inorder(node.children[0], flag)
+                print(node.item, end='')
+                if node.children[1]:
+                    if flag == 0:
+                        listLeft.append(node.values[k])
+                    else:
+                        listRight.append(node.values[k])
+                    _inorder(node.children[1], flag)
+        _inorder(self.root)
+'''
+    def inorder(self, standard):
+        def _inorder(node, level=0, flag=0):
+            for k in range(len(node.values)):
+                if node.values[k] == standard:
+                    _inorder(node[k+1], flag=1)
+                print(f"Level {level}: ", end='')
+                try: 
+                    print(f"{book_callNoDict[node.values[k]]}", end=' | ')
+                except KeyError: 
+                    print(f"{standardNo}", end=' | ')
+                if node.children[0]:
+                    print()
+                    if flag == 0:
+                        listLeft.append(node.values[k])
+                    else:
+                        listRight.append(node.values[k])
+                    _inorder(node.children[0], level+1)
+                if node.children[1]:
+                    print()
+                    if flag == 0:
+                        listLeft.append(node.values[k])
+                    else:
+                        listRight.append(node.values[k])
+                    _inorder(node.children[1], level+1)
+        _inorder(self.root)
 
 def print_tree(node, level=0):
     if node is not None:
@@ -68,17 +114,19 @@ def print_tree(node, level=0):
                 print()
                 print_tree(child, level+1)
 
-btree = BTree()
-
 values_insert = [1, 2, 3, 4, 5, 6, 7, 8]
 for value in values_insert:
     btree.insert(value)
 
 #print_tree(btree.root)
+'''
+btree = BTree()
 
 baseURL = "https://www.nl.go.kr/NL/search/openApi/search.do?key=" + APIKEY
 resultList = []
 callNoList = []
+listLeft = []
+listRight = []
 book_callNoDict = {}
 standardNo = ""
 
@@ -96,6 +144,9 @@ if __name__ == '__main__':
         if result['total'] == 0:
             print("책을 찾을 수 없습니다. 다시 입력해주세요.")
             continue
+        if result['result'][0]['callNo'] == '':
+            print("청구 기호가 존재하지 않습니다. 다른 책을 입력해주세요.")
+            continue
         resultList.append(result)
         i += 1
 
@@ -106,5 +157,6 @@ if __name__ == '__main__':
 
     standardNo = input("분류 청구 기호 기준 입력: ")
     btree.insert(standardNo)
-    
-    print_tree(btree.root)
+
+    btree.inorder(standardNo)
+    print(f"Sort 1: {listLeft}\nSort 2: {listRight}")
