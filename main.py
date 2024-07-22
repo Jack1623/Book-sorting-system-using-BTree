@@ -23,6 +23,14 @@ class BTree:
                 node.values = [node.values[2]]
                 node.children = [left_node, right_node]
 
+            else:
+                i = 0
+                while i < len(node.values):
+                    if value < node.values[i]:
+                        break
+                    i += 1
+                self.insert_value(node.children[i], value)
+
 def print_tree(node, level=0):
     if node is not None:
         print(f"Level {level}: {node.values}")
