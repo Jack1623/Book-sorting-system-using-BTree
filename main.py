@@ -40,10 +40,30 @@ class BTree:
                 i += 1
             self.insert_value(node.children[i], value)  
 
+    def get(self, value):
+        return self.get_value(self.root, value)
+
+    def get_value(self, node, value):
+        if not node.children:  
+            return value in node.values
+        else:  
+            i = 0
+            while i < len(node.values):
+                if value == node.values[i]:
+                    return True
+                if value < node.values[i]:
+                    return self.get_value(node.children[i], value)
+                i += 1
+            return self.get_value(node.children[i], value)
+
 def print_tree(node, level=0):
     if node is not None:
         for k in range(len(node.values)):
-            print(f"Level {level}: {book_callNoDict[node.values[k]]}", end=', ')
+            print(f"Level {level}: ", end='')
+            try: 
+                print(f"{book_callNoDict[node.values[k]]}", end=' | ')
+            except KeyError: 
+                print(f"{standardNo}", end=' | ')
             for child in node.children:
                 print()
                 print_tree(child, level+1)
@@ -60,6 +80,7 @@ baseURL = "https://www.nl.go.kr/NL/search/openApi/search.do?key=" + APIKEY
 resultList = []
 callNoList = []
 book_callNoDict = {}
+standardNo = ""
 
 if __name__ == '__main__':
     i = 0
@@ -83,4 +104,7 @@ if __name__ == '__main__':
         book_callNoDict[callNoList[j]] = resultList[j]['kwd']
         btree.insert(callNoList[j])
 
+    standardNo = input("분류 청구 기호 기준 입력: ")
+    btree.insert(standardNo)
+    
     print_tree(btree.root)
