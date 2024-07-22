@@ -61,19 +61,21 @@ class BTree:
             for k in range(len(node.values)):
                 if node.values[k] == standard:
                     _inorder(node[k+1], flag=1)
-                if node.children[0]:
-                    if flag == 0:
-                        listLeft.append(node.values[k])
-                    else:
-                        listRight.append(node.values[k])
-                    _inorder(node.children[0], flag)
-                print(node.item, end='')
-                if node.children[1]:
-                    if flag == 0:
-                        listLeft.append(node.values[k])
-                    else:
-                        listRight.append(node.values[k])
-                    _inorder(node.children[1], flag)
+                if not len(node.children):
+                    if node.children[0]:
+                        if not flag:
+                            listLeft.append(node.values[k])
+                        else:
+                            listRight.append(node.values[k])
+                        _inorder(node.children[0], flag)
+                    if node.children[1]:
+                        if not flag:
+                            listLeft.append(node.values[k])
+                        else:
+                            listRight.append(node.values[k])
+                        _inorder(node.children[1], flag)
+                else:
+                    pass
         _inorder(self.root)
 '''
     def inorder(self, standard):
