@@ -7,10 +7,14 @@ load_dotenv()
 
 APIKEY = os.getenv('APIKEY')
 
+leaf_levels = []
+
 class BTreeNode:
     def __init__(self):
         self.values = []
         self.children = []
+        self.parent = []
+        self.level = 0
 
 class BTree:
     def __init__(self):
@@ -19,18 +23,10 @@ class BTree:
     def insert(self, value):
         self.insert_value(self.root, value)
 
-    def insert_value(self, node, value):
+    def insert_value(self, node, value, flag=0):
         if not node.children:
             node.values.append(value)
             node.values.sort()
-
-            if len(node.values) > 4:
-                left_node = BTreeNode()
-                right_node = BTreeNode()
-                left_node.values = node.values[:2]
-                right_node.values = node.values[3:]
-                node.values = [node.values[2]]
-                node.children = [left_node, right_node]
         
         else:
             i = 0
@@ -38,7 +34,46 @@ class BTree:
                 if value < node.values[i]:
                     break
                 i += 1
-            self.insert_value(node.children[i], value)  
+            self.insert_value(node.children[i], value, flag=1) 
+            if not flag:
+                return
+
+        if len(node.values) > 2:
+            left_node = BTreeNode()
+            right_node = BTreeNode()
+            left_node.parent = right_node.parent = node
+            left_node.level = node.level + 1
+            right_node.level = node.level + 1
+            left_node.values = [node.values[0]]
+            right_node.values = [node.values[2]]
+            node.values = [node.values[1]]
+            node.children = [left_node, right_node]
+
+        if node != self.root and not self.check_leaf_levels(self.root):
+            for value in node.values:
+                node.parent.values.append(value)
+            node.parent.values.sort()
+            node.parent.children.remove(node)
+            for children in node.children:
+                node.parent.children.append(children)
+
+    def check_leaf_levels(self, node, flag=0):
+        if not node.children:
+            leaf_levels.append(node.level)
+            return
+        else:
+            for child in node.children:
+                self.check_leaf_levels(child, flag=1)
+                if flag:
+                    return
+
+        firstLevel = leaf_levels[0]
+        for level in leaf_levels:
+            if level != firstLevel:
+                leaf_levels.clear()
+                return False
+        leaf_levels.clear()
+        return True  
 
     def get(self, value):
         return self.get_value(self.root, value)
@@ -116,7 +151,8 @@ class BTree:
                     _inorder(node.children[1], level+1)
         _inorder(self.root)
 
-def print_tree(node, level=0):
+'''
+'''def print_tree(node, level=0):
     if node is not None:
         for k in range(len(node.values)):
             print(f"Level {level}: ", end='')
@@ -126,14 +162,21 @@ def print_tree(node, level=0):
                 print(f"{standardNo}", end=' | ')
             for child in node.children:
                 print()
-                print_tree(child, level+1)
+                print_tree(child, level+1)'''
+def print_tree(node, level=0):
+    if node is not None:
+        print(f"Level {level}: {node.values}")
+        for child in node.children:
+            print_tree(child, level + 1)
 
-values_insert = [1, 2, 3, 4, 5, 6, 7, 8]
+btree = BTree()
+
+values_insert = [1, 2, 3, 4, 5, 6, 7]
 for value in values_insert:
     btree.insert(value)
 
-#print_tree(btree.root)
-'''
+print_tree(btree.root)
+
 btree = BTree()
 
 baseURL = "https://www.nl.go.kr/NL/search/openApi/search.do?key=" + APIKEY
