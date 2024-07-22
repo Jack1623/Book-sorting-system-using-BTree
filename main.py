@@ -1,6 +1,7 @@
 import requests
 from dotenv import load_dotenv
 import os
+import re
 
 load_dotenv()
 
@@ -41,24 +42,45 @@ class BTree:
 
 def print_tree(node, level=0):
     if node is not None:
-        print(f"Level {level}: {node.values}")
-        for child in node.children:
-            print_tree(child, level+1)
+        for k in range(len(node.values)):
+            print(f"Level {level}: {book_callNoDict[node.values[k]]}", end=', ')
+            for child in node.children:
+                print()
+                print_tree(child, level+1)
 
 btree = BTree()
+
 values_insert = [1, 2, 3, 4, 5, 6, 7, 8]
 for value in values_insert:
     btree.insert(value)
 
-print_tree(btree.root)
+#print_tree(btree.root)
 
 baseURL = "https://www.nl.go.kr/NL/search/openApi/search.do?key=" + APIKEY
-
-response = requests.get("https://www.nl.go.kr/NL/search/openApi/search.do?key=" + APIKEY + "&kwd=%ED%86%A0%EC%A7%800&apiType=xml&srchTarget=total") 
+resultList = []
+callNoList = []
+book_callNoDict = {}
 
 if __name__ == '__main__':
-    kwd = input()
-    url = baseURL + "&kwd=" + kwd + "pageSize=10&pageNum=1"
-    response = requests.get(url)
-    url = baseURL
-    print(response)
+    i = 0
+    num = int(input("분류할 책의 개수 입력: "))
+    while True:
+        if(i == num):
+            break
+        kwd = input("분류할 책의 제목과 저자를 슬래시(/)로 구분하여 입력(%d): "%(i+1))
+        kwdList = kwd.split('/')
+        url = baseURL + "&apiType=json&srchTarget=total&kwd=" + kwdList[0] + "&detailSearch=true&f1=title&v1=" + kwdList[0] + "&f2=author&v2=" + kwdList[1] + "&pageSize=1&pageNum=1"
+        response = requests.get(url)
+        result = response.json()
+        if result['total'] == 0:
+            print("책을 찾을 수 없습니다. 다시 입력해주세요.")
+            continue
+        resultList.append(result)
+        i += 1
+
+    for j in range(len(resultList)):
+        callNoList.append(re.sub(r'[^0-9]', '', resultList[j]['result'][0]['callNo']))
+        book_callNoDict[callNoList[j]] = resultList[j]['kwd']
+        btree.insert(callNoList[j])
+
+    print_tree(btree.root)
