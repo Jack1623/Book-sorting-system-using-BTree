@@ -41,6 +41,23 @@ class BTree:
         if len(node.values) > 2:
             self.fix_overflow(node)
 
+    def fix_overflow(self, node):                                 
+        left_node = BTreeNode()
+        right_node = BTreeNode()
+        for lr_node in [left_node, right_node]:
+            lr_node.parent = node
+            lr_node.level = node.level + 1
+            left_node.children = node.children[:(len(node.children)//2)]
+            right_node.children = node.children[(len(node.children)//2):]
+            for lr_node in [left_node, right_node]:
+                for children in lr_node.children:
+                    children.level += 1
+                    children.parent = lr_node
+        left_node.values = [node.values[0]]
+        right_node.values = [node.values[2]]
+        node.values = [node.values[1]]
+        node.children = [left_node, right_node]
+
         if node != self.root and not self.check_leaf_levels(self.root):
             for value in node.values:
                 node.parent.values.append(value)
@@ -48,27 +65,12 @@ class BTree:
             node.parent.children.remove(node)
             for children in node.children:
                 node.parent.children.append(children)
+                node.parent.children = sort_children(node.parent.children)
                 children.parent = node.parent
                 children.level -= 1
 
-            if node.parent != None and len(node.parent.values) > 2:     # 오류의 근원지. node.parent가 아니라 다른 것을 입력해야 되는 것으로 추정.
+            if node.parent != None and len(node.parent.values) > 2:     
                 self.fix_overflow(node.parent)
-
-    def fix_overflow(self, node):                                       # fix_overflow() 함수와 연계해서 생각
-        left_node = BTreeNode()
-        right_node = BTreeNode()
-        for lr_node in [left_node, right_node]:
-            lr_node.parent = node
-            lr_node.level = node.level + 1
-            for children in lr_node.children:
-                children.level += 1
-                children.parent = lr_node
-        left_node.children = node.children[:(len(node.children)//2)]
-        right_node.children = node.children[(len(node.children)//2):]
-        left_node.values = [node.values[0]]
-        right_node.values = [node.values[2]]
-        node.values = [node.values[1]]
-        node.children = [left_node, right_node]
 
     def check_leaf_levels(self, node, flag=0):
         if not node.children:
@@ -88,22 +90,6 @@ class BTree:
                 return False
         leaf_levels.clear()
         return True  
-
-    '''def get(self, value):
-        return self.get_value(self.root, value)
-
-    def get_value(self, node, value):
-        if not node.children:  
-            return value in node.values
-        else:  
-            i = 0
-            while i < len(node.values):
-                if value == node.values[i]:
-                    return True
-                if value < node.values[i]:
-                    return self.get_value(node.children[i], value)
-                i += 1
-            return self.get_value(node.children[i], value)'''
     
     def inorder(self, standard):
         flag = 0
@@ -166,28 +152,28 @@ class BTree:
         _inorder(self.root)
 
 '''
-'''def print_tree(node, level=0):
-    if node is not None:
-        for k in range(len(node.values)):
-            print(f"Level {level}: ", end='')
-            try: 
-                print(f"{book_callNoDict[node.values[k]]}", end=' | ')
-            except KeyError: 
-                print(f"{standardNo}", end=' | ')
-            for child in node.children:
-                print()
-                print_tree(child, level+1)'''
+def sort_children(children):
+    children_value = []
+    for child in children:
+        children_value.append(child.values[0])
+    for i in range(len(children)):
+        min_idx = i
+        for j in range(i + 1, len(children)):
+            if children_value[min_idx] > children_value[j]:
+                min_idx = j 
+        children[i], children[min_idx] = children[min_idx], children[i]
+    return children
+
 def print_tree(node, level=0):
     if node is not None:
         print(f"Level {level}: {node.values}")
-        if node.parent != None:
-            print(f"Parent: {node.parent.values}")
         for child in node.children:
             print_tree(child, level + 1)
 
 btree = BTree()
 
-values_insert = [1, 2, 3, 4, 5, 6, 7, 8]
+#6, 8, 10, 2, 1, 7, 3, 9, 11, 4, 5
+values_insert = []
 for value in values_insert:
     btree.insert(value)
 
